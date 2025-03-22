@@ -9,7 +9,7 @@ st.title("UFO目击地理分布分析 🛸")
 # 从GitHub读取数据
 @st.cache_data
 def load_data():
-    csv_url = "https://raw.githubusercontent.com/[你的用户名]/[仓库名]/main/ufo_sighting_data.csv"
+    csv_url = "https://raw.githubusercontent.com/slslsilin/ufo-sight-app/main/ufo_sighting_data.csv"
     df = pd.read_csv(csv_url)
     
     # 数据清洗
