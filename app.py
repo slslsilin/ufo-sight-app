@@ -5,7 +5,7 @@ import pandas as pd
 st.title("UFO目击数据可视化应用 🛸")
 
 # 从GitHub读取CSV数据
-csv_url = "https://raw.githubusercontent.com/[你的GitHub用户名]/[仓库名]/main/ufo_sighting_data.csv"
+csv_url = "https://raw.githubusercontent.com/slslsilin/ufo-sight-app/main/ufo_sighting_data.csv"
 df = pd.read_csv(csv_url)
 
 # 显示原始数据
