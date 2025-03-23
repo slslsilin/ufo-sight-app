@@ -17,7 +17,7 @@ def load_data():
     df["longitude"] = pd.to_numeric(df["longitude"], errors="coerce")
     df = df.dropna(subset=["latitude", "longitude"])
     df = df[df["latitude"].between(-90, 90) & df["longitude"].between(-180, 180)]
-      df["city"] = df["city"].astype(str).str.lower()
+    df["city"] = df["city"].astype(str).str.lower()
     df["area_type"] = df["city"].apply(
         lambda x: "rural" if "country" in x else 
                  "suburban" if "rural" in x else 
