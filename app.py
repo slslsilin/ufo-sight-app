@@ -33,7 +33,7 @@ col1, col2 = st.columns([1, 2])
 
 with col1:
     st.subheader("国家排名")
-    st.dataframe(country_counts.head(10), height=400)
+    st.dataframe(country_counts, height=400)
 
 with col2:
     st.subheader("分布直方图")
@@ -57,7 +57,7 @@ st.map(df[["latitude", "longitude"]], zoom=1)
 st.subheader("州/省级热点排名")
 state_counts = df["state/province"].value_counts().reset_index()
 state_counts.columns = ["州/省", "目击次数"]
-fig = px.bar(state_counts.head(15), 
+fig = px.bar(state_counts, 
              x="目击次数", y="州/省", 
              orientation="h",
              labels={"州/省": "地区", "目击次数": "报告数量"},
