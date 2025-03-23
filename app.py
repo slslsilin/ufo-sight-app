@@ -37,7 +37,7 @@ with col1:
 
 with col2:
     st.subheader("分布直方图")
-    fig = px.bar(country_counts.head(10), 
+    fig = px.bar(country_counts.head(20), 
                  x="国家", y="目击次数",
                  color="目击次数", 
                  labels={"国家": "国家", "目击次数": "报告数量"},
@@ -83,7 +83,7 @@ col3, col4 = st.columns(2)
 with col3:
     st.subheader("城乡分布比例")
     urban_rural = city_counts["地区类型"].value_counts()
-    fig = px.pie(urban_rural, 
+    fig = px.pie(urban_rural.head(20), 
                  values=urban_rural.values, 
                  names=urban_rural.index,
                  hole=0.4)
