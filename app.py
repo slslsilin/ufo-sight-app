@@ -17,7 +17,12 @@ def load_data():
     df["longitude"] = pd.to_numeric(df["longitude"], errors="coerce")
     df = df.dropna(subset=["latitude", "longitude"])
     df = df[df["latitude"].between(-90, 90) & df["longitude"].between(-180, 180)]
-    df["city"] = df["city"].astype(str).str.lower()
+      df["city"] = df["city"].astype(str).str.lower()
+    df["area_type"] = df["city"].apply(
+        lambda x: "rural" if "country" in x else 
+                 "suburban" if "rural" in x else 
+                 "urban"
+    )
     return df
 
 df = load_data()
@@ -84,73 +89,79 @@ df["地区类型"] = df["city"].apply(classify_urban_rural)
 # =========================================================================
 # 城乡分布可视化
 # =========================================================================
-st.header("城乡目击分布")
-
-# 双列布局
-col1, col2 = st.columns([1, 2])
-
-with col1:
-    # 饼图展示比例
-    st.subheader("城乡比例")
-    urban_rural_counts = df["地区类型"].value_counts().reset_index()
-    urban_rural_counts.columns = ["地区类型", "目击次数"]
-    fig_pie = px.pie(
-        urban_rural_counts,
-        names="地区类型",
-        values="目击次数",
-        color="地区类型",
-        color_discrete_map={"农村": "#00CC96", "郊区": "#EF553B", "城市": "#636EFA"},
-        hole=0.3
-    )
-    st.plotly_chart(fig_pie, use_container_width=True)
-
-with col2:
-    # 表格展示分类示例
-    st.subheader("分类示例")
-    
-    # 农村示例
-    rural_examples = df[df["地区类型"] == "农村"]["city"].str.title().unique()[:10]
-    # 郊区示例
-    suburban_examples = df[df["地区类型"] == "郊区"]["city"].str.title().unique()[:10]
-    
-    # 用Expander折叠展示
-    with st.expander("点击查看农村地区示例", expanded=True):
-        st.write(pd.DataFrame({"农村地区": rural_examples}))
-    
-    with st.expander("点击查看郊区示例"):
-        st.write(pd.DataFrame({"郊区": suburban_examples}))
-
 # =========================================================================
-# 地理分布验证地图
+# Creative Visual 1: Animated Time Series Globe
 # =========================================================================
-st.header("分类结果地理验证")
-st.write("""
-- **红色标记**: 郊区 (`city`名称含"rural")  
-- **蓝色标记**: 城市  
-- **绿色标记**: 农村 (`city`名称含"country")
-""")
+st.header("🌍 Temporal Distribution Globe")
+st.write("Animated sightings over time with classification")
 
-# 为地图添加颜色编码
-df["color"] = df["地区类型"].map({
-    "农村": "#00CC96",
-    "郊区": "#EF553B",
-    "城市": "#636EFA"
-})
+# Create time-based aggregation
+time_df = df.groupby([pd.to_datetime(df["date_time"]).dt.year, "area_type"]).size().reset_index(name="counts")
+time_df.columns = ["year", "area_type", "sightings"]
 
-# 绘制交互式地图
-fig_map = px.scatter_geo(
+# Generate 3D animated globe
+fig_globe = px.scatter_geo(
     df,
     lat="latitude",
     lon="longitude",
-    color="color",
+    color="area_type",
     hover_name="city",
-    scope="world",
-    projection="natural earth",
-    title="城乡分类地理分布验证",
-    opacity=0.7
+    animation_frame=pd.to_datetime(df["date_time"]).dt.year,
+    color_discrete_map={
+        "urban": "#636EFA",
+        "suburban": "#EF553B",
+        "rural": "#00CC96"
+    },
+    projection="orthographic",
+    template="plotly_dark",
+    height=600
 )
-fig_map.update_layout(showlegend=False)
-st.plotly_chart(fig_map, use_container_width=True)
+fig_globe.update_layout(showlegend=False)
+st.plotly_chart(fig_globe, use_container_width=True)
+
+# =========================================================================
+# Creative Visual 2: 3D Classification Cube
+# =========================================================================
+st.header("🧊 Spatial Classification Matrix")
+col1, col2 = st.columns([2, 1])
+
+with col1:
+    # 3D Scatter Plot
+    fig_3d = px.scatter_3d(
+        df.sample(1000),  # Sampling for performance
+        x="longitude",
+        y="latitude",
+        z=pd.to_datetime(df["date_time"]).dt.year,
+        color="area_type",
+        symbol="area_type",
+        opacity=0.7,
+        labels={"z": "Year"},
+        color_discrete_map={
+            "urban": "#2E91E5",
+            "suburban": "#E15F99",
+            "rural": "#1CA71C"
+        },
+        template="seaborn"
+    )
+    fig_3d.update_layout(margin=dict(l=0, r=0, b=0, t=0))
+    st.plotly_chart(fig_3d, use_container_width=True)
+
+with col2:
+    # Contextual Word Cloud
+    st.subheader("Top Location Lexicon")
+    text = " ".join(df["city"].dropna().astype(str))
+    wordcloud = WordCloud(
+        width=400,
+        height=300,
+        background_color="white",
+        colormap="twilight"
+    ).generate(text)
+    
+    plt.figure(figsize=(8, 5))
+    plt.imshow(wordcloud, interpolation="bilinear")
+    plt.axis("off")
+    st.pyplot(plt)
+ 
 # =========================================================================
 # 添加筛选器
 # =========================================================================
